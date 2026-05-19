@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 
-// Импортируем наши локальные данные вместо base44
+// Импортируем наши локальные данные
 import { localBooks, localRecommendations } from "../mockData";
 
 // Импорт компонентов интерфейса
@@ -14,28 +14,80 @@ import SectionDivider from "../components/booklist/SectionDivider";
 import RecommendationForm from "../components/booklist/RecommendationForm";
 import RecommendationCard from "../components/booklist/RecommendationCard";
 
+// Твои личные данные от Sheetson
+const API_KEY = '6_w0njCMS0pGhSY-nc2U7l9L-5_16qCmU_MDqSTi7Vid-HJ_aWzqBJqqq9Q';
+const SPREADSHEET_ID = '1M6thLwpRMwnZYAHwCGYoFmT72pyo3dlmU41SehVhK-M';
+const SHEET_NAME = 'book-recommendations';
+
 const PAGE_SIZE = 15;
 
 export default function Home() {
-  // Загружаем книги и рекомендации сразу из локального файла
   const [books] = useState(localBooks);
+  // Изначально показываем локальные рекомендации, пока грузятся новые из таблицы
   const [recommendations, setRecommendations] = useState(localRecommendations);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Функция обработки новой рекомендации от пользователя (добавление в список на экране)
+  // 📥 1. Загружаем сохраненные книги из Google Таблицы при старте сайта
+  useEffect(() => {
+    const fetchUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
+    
+    fetch(fetchUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Ошибка сети: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.results && data.results.length > 0) {
+          // Приводим данные из таблицы к нужному формату (добавляем id)
+          const cloudRecs = data.results.map((item, index) => ({
+            id: item.id || `cloud-${index}`,
+            name: item.name,
+            book_title: item.book_title,
+            book_author: item.book_author,
+            text: item.text,
+            created_date: item.created_date
+          }));
+          
+          // Объединяем: новые из таблицы (перевернутые, чтобы свежие сверху) + твои дефолтные локальные
+          setRecommendations([...cloudRecs.reverse(), ...localRecommendations]);
+        }
+      })
+      .catch((err) => console.error("Ошибка загрузки рекомендаций:", err));
+  }, []);
+
+  // 📤 2. Функция отправки новой рекомендации в Google Таблицу
   const handleNewRec = (newRecData) => {
     const newRecommendation = {
-      id: `rec-${Date.now()}`, // Генерируем уникальный ID
       name: newRecData.name || "Аноним",
-      
-      // ✨ ВОТ ТУТ МЫ СПАСАЕМ НАШИ КНИГИ:
-      book_title: newRecData.book_title || "",   // Сохраняем название книги
-      book_author: newRecData.book_author || "", // Сохраняем автора книги
-      
-      text: newRecData.text || newRecData.recommendation || "", // адаптируем под возможные поля вашей формы
+      book_title: newRecData.book_title || "",
+      book_author: newRecData.book_author || "",
+      text: newRecData.text || newRecData.recommendation || "",
       created_date: new Date().toISOString()
     };
-    setRecommendations((prev) => [newRecommendation, ...prev]);
+
+    const postUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
+
+    fetch(postUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newRecommendation),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Не удалось сохранить строку");
+        return res.json();
+      })
+      .then((savedData) => {
+        // Добавляем сгенерированный id, чтобы React не ругался при рендере ключей
+        const finalRec = {
+          ...newRecommendation,
+          id: savedData.id || `rec-${Date.now()}`
+        };
+        // Мгновенно отображаем карточку сверху на экране
+        setRecommendations((prev) => [finalRec, ...prev]);
+      })
+      .catch((err) => console.error("Ошибка записи в таблицу:", err));
   };
 
   return (
@@ -122,8 +174,8 @@ export default function Home() {
             </div>
             <div className="px-2">
               <AnimatePresence>
-                {recommendations.map((rec, i) => (
-                  <RecommendationCard key={rec.id} rec={rec} index={i} />
+                {recommendations.map((rec) => (
+                  <RecommendationCard key={rec.id} rec={rec} />
                 ))}
               </AnimatePresence>
             </div>
