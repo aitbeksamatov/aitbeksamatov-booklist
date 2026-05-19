@@ -1,0 +1,8 @@
+{
+  "short_name": "Booklist",
+  "name": "My Booklist App",
+  "start_url": "/",
+  "background_color": "#11141a",
+  "display": "standalone",
+  "theme_color": "#dcba50"
+}

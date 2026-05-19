@@ -1,0 +1,23 @@
+{
+  "name": "Recommendation",
+  "type": "object",
+  "properties": {
+    "book_title": {
+      "type": "string",
+      "description": "Recommended book title"
+    },
+    "book_author": {
+      "type": "string",
+      "description": "Recommended book author"
+    },
+    "recommender_name": {
+      "type": "string",
+      "description": "Name of person recommending"
+    }
+  },
+  "required": [
+    "book_title",
+    "book_author",
+    "recommender_name"
+  ]
+}

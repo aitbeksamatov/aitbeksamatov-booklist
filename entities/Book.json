@@ -1,0 +1,34 @@
+{
+  "name": "Book",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Book title"
+    },
+    "author": {
+      "type": "string",
+      "description": "Book author"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "essential",
+        "currently_reading",
+        "completed",
+        "on_list"
+      ],
+      "default": "completed",
+      "description": "Reading status"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    }
+  },
+  "required": [
+    "title",
+    "author"
+  ]
+}
