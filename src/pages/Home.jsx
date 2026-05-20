@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 
-// Импортируем наши локальные данные
 import { localBooks, localRecommendations } from "../mockData";
 
-// Импорт компонентов интерфейса
 import ScrollToTop from "../components/booklist/ScrollToTop";
 import GrainOverlay from "../components/booklist/GrainOverlay";
 import DustParticles from "../components/booklist/DustParticles";
@@ -14,7 +12,6 @@ import SectionDivider from "../components/booklist/SectionDivider";
 import RecommendationForm from "../components/booklist/RecommendationForm";
 import RecommendationCard from "../components/booklist/RecommendationCard";
 
-// Личные данные от Sheetson
 const API_KEY = '6_w0njCMS0pGhSY-nc2U7l9L-5_16qCmU_MDqSTi7Vid-HJ_aWzqBJqqq9Q';
 const SPREADSHEET_ID = '1M6thLwpRMwnZYAHwCGYoFmT72pyo3dlmU41SehVhK-M';
 const SHEET_NAME = 'Sheet1';
@@ -23,11 +20,10 @@ const PAGE_SIZE = 15;
 
 export default function Home() {
   const [books] = useState(localBooks);
-  // Изначально показываем локальные рекомендации
   const [recommendations, setRecommendations] = useState(localRecommendations);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // 📥 1. Загружаем сохраненные книги из Google Таблицы при старте сайта
+  // 📥 Скачиваем данные при открытии сайта
   useEffect(() => {
     const fetchUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
     
@@ -38,36 +34,30 @@ export default function Home() {
       })
       .then((data) => {
         if (data && data.results && data.results.length > 0) {
-          // Приводим данные из таблицы к нужному формату
           const cloudRecs = data.results.map((item, index) => ({
             id: item.id || `cloud-${index}-${Date.now()}`,
             name: item.name || "Аноним",
             book_title: item.book_title || "Без названия",
-            book_author: item.book_author || "Автор не указан",
-            text: item.text || "",
-            created_date: item.created_date || new Date().toISOString()
+            book_author: item.book_author || "Автор не указан"
           }));
           
-          // Объединяем: новые из таблицы (реверс, чтобы свежие сверху) + локальные
+          // Показываем новые облачные сверху + старые локальные снизу
           setRecommendations([...cloudRecs.reverse(), ...localRecommendations]);
         }
       })
       .catch((err) => console.error("Ошибка загрузки рекомендаций из Sheetson:", err));
   }, []);
 
-  // 📤 2. Функция отправки новой рекомендации в Google Таблицу
+  // 📤 Отправляем строго 3 твоих поля в Google Таблицу
   const handleNewRec = (newRecData) => {
     const newRecommendation = {
       name: newRecData.name || "Аноним",
       book_title: newRecData.book_title || "",
-      book_author: newRecData.book_author || "",
-      text: newRecData.text || "",
-      created_date: new Date().toISOString()
+      book_author: newRecData.book_author || ""
     };
 
     const postUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
 
-    // СТРОГО ДОБАВЛЕН RETURN, чтобы связать асинхронность с формой!
     return fetch(postUrl, {
       method: "POST",
       headers: {
@@ -80,46 +70,33 @@ export default function Home() {
         return res.json();
       })
       .then((savedData) => {
-        // Создаем финальный объект для мгновенного рендера на экране
         const finalRec = {
           ...newRecommendation,
           id: savedData.id || `rec-${Date.now()}`
         };
-        // Мгновенно отображаем карточку на экране поверх остальных
+        // Добавляем на экран
         setRecommendations((prev) => [finalRec, ...prev]);
       })
       .catch((err) => {
         console.error("Ошибка записи в таблицу:", err);
-        throw err; // Пробрасываем ошибку, чтобы форма знала о сбое
+        throw err;
       });
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: "hsl(222,28%,9%)" }}>
-      {/* Фоновые атмосферные свечения */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div
-          className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsl(38,90%,62%) 0%, transparent 70%)", filter: "blur(60px)" }}
-        />
-        <div
-          className="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, hsl(210,80%,65%) 0%, transparent 70%)", filter: "blur(80px)" }}
-        />
-        <div
-          className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, hsl(180,60%,55%) 0%, transparent 70%)", filter: "blur(100px)" }}
-        />
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-20" style={{ background: "radial-gradient(circle, hsl(38,90%,62%) 0%, transparent 70%)", filter: "blur(60px)" }} />
+        <div className="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full opacity-15" style={{ background: "radial-gradient(circle, hsl(210,80%,65%) 0%, transparent 70%)", filter: "blur(80px)" }} />
+        <div className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full opacity-10" style={{ background: "radial-gradient(circle, hsl(180,60%,55%) 0%, transparent 70%)", filter: "blur(100px)" }} />
       </div>
 
       <GrainOverlay />
       <DustParticles />
 
-      {/* Основной контент */}
       <div className="relative z-20 max-w-2xl mx-auto px-5 md:px-8">
         <HeroHeader />
 
-        {/* Список Книг */}
         <section className="pb-8">
           <div className="space-y-3">
             {books.slice(0, visibleCount).map((book, i) => (
@@ -135,40 +112,22 @@ export default function Home() {
               <button
                 onClick={() => setVisibleCount((c) => Math.min(c + PAGE_SIZE, books.length))}
                 className="mt-2 px-8 py-3 rounded-full border border-white/10 text-sm tracking-widest uppercase font-medium transition-all duration-300 hover:border-amber-400/40 hover:shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-                  color: "hsl(38,90%,62%)",
-                }}
+                style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)", color: "hsl(38,90%,62%)" }}
               >
                 Показать ещё
-              </button>
-              <button
-                onClick={() => {
-                  setVisibleCount(books.length);
-                  setTimeout(() => document.getElementById("recommend")?.scrollIntoView({ behavior: "smooth" }), 100);
-                }}
-                className="text-xs underline underline-offset-4 transition-opacity duration-200 hover:opacity-80"
-                style={{ color: "hsl(220,10%,42%)" }}
-              >
-                Перейти к форме рекомендации →
               </button>
             </div>
           )}
         </section>
 
-        {/* Секция формы */}
         <div id="recommend">
-          <SectionDivider
-            title="Рекомендации"
-            subtitle="Вы можете добавить свою рекомендацию"
-          />
+          <SectionDivider title="Рекомендации" subtitle="Вы можете добавить свою рекомендацию" />
         </div>
 
         <section className="pb-12">
           <RecommendationForm onSubmitted={handleNewRec} />
         </section>
 
-        {/* Список рекомендаций от пользователей */}
         {recommendations && recommendations.length > 0 && (
           <section className="pb-20">
             <div className="mb-6">
@@ -188,7 +147,6 @@ export default function Home() {
 
         <ScrollToTop />
         
-        {/* Футер */}
         <footer className="border-t border-white/[0.04] py-12 text-center">
           <p className="text-xs text-muted-foreground/40 tracking-widest uppercase">
             Aitbek Samatov — {new Date().getFullYear()}
