@@ -13,7 +13,7 @@ import RecommendationForm from "../components/booklist/RecommendationForm";
 import RecommendationCard from "../components/booklist/RecommendationCard";
 
 const API_KEY = '6_w0njCMS0pGhSY-nc2U7l9L-5_16qCmU_MDqSTi7Vid-HJ_aWzqBJqqq9Q';
-const SPREADSHEET_ID = '1M6thLwpRMwnZYAHwCGYoFmT72pyo3dlmU41SehVhK-M';
+const SPREADSHEET_ID = '1dIcCOuzz_HOKNNmngqsPgSobZugttsmrvIEyr43eHZ0';
 const SHEET_NAME = 'Sheet1';
 
 const PAGE_SIZE = 15;
