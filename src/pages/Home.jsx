@@ -174,8 +174,8 @@ export default function Home() {
             </div>
             <div className="px-2">
               <AnimatePresence>
-                {recommendations.map((rec) => (
-                  <RecommendationCard key={rec.id} rec={rec} />
+                {recommendations.map((rec, i) => (
+                  <RecommendationCard key={rec.id} rec={rec} index={i} />
                 ))}
               </AnimatePresence>
             </div>

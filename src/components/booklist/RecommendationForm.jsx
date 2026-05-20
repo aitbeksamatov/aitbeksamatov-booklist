@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Check } from "lucide-react";
 
 export default function RecommendationForm({ onSubmitted }) {
-  // Поля формы теперь совпадают с теми, что мы используем в RecommendationCard
-  const [form, setForm] = useState({ book_title: "", book_author: "", name: "" });
+  // Добавили поле text, чтобы пользователь мог написать отзыв, и это улетало в таблицу
+  const [form, setForm] = useState({ book_title: "", book_author: "", name: "" , text: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -12,30 +12,35 @@ export default function RecommendationForm({ onSubmitted }) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.book_title || !form.book_author || !form.name) return;
+    // Проверяем, чтобы всё было заполнено
+    if (!form.book_title || !form.book_author || !form.name || !form.text) return;
     
+    setSubmitting(true);
 
-
-    // Имитируем небольшую задержку "отправки"
-    setTimeout(() => {
-      // Передаем данные в Home.jsx через onSubmitted
-      onSubmitted({
+    try {
+      // Передаем данные в Home.jsx, где срабатывает fetch-запрос к Sheetson
+      await onSubmitted({
         book_title: form.book_title,
         book_author: form.book_author,
-        name: form.name
+        name: form.name,
+        text: form.text
       });
-      
+
+      // Переключаем интерфейс на статус "Успешно"
       setSubmitting(false);
       setSubmitted(true);
       
-      // Очищаем форму
-      setForm({ book_title: "", book_author: "", name: "" });
+      // Очищаем форму для новой записи
+      setForm({ book_title: "", book_author: "", name: "", text: "" });
       
-      // Сбрасываем статус "успешно" через 4 секунды
+      // Сбрасываем статус успешной отправки через 4 секунды
       setTimeout(() => setSubmitted(false), 4000);
-    }, 600); // 600мс — приятная задержка для пользователя
+    } catch (error) {
+      console.error("Ошибка при отправке формы:", error);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -54,7 +59,7 @@ export default function RecommendationForm({ onSubmitted }) {
       >
         <form onSubmit={handleSubmit} className="space-y-7">
           {[
-            { key: "book_title", label: "Название книги", placeholder: "Название" },
+            { key: "book_title", label: "Название книги", placeholder: "Название книги" },
             { key: "book_author", label: "Автор", placeholder: "Автор книги" },
             { key: "name", label: "Ваше имя", placeholder: "Как вас зовут" },
           ].map((field) => (
@@ -82,6 +87,31 @@ export default function RecommendationForm({ onSubmitted }) {
               />
             </div>
           ))}
+
+          {/* 📝 НАШЕ НОВОЕ КРАСИВОЕ ПОЛЕ ДЛЯ ТЕКСТА РЕКОМЕНДАЦИИ */}
+          <div>
+            <label
+              className="block text-[10px] tracking-[0.2em] uppercase mb-2.5 font-medium"
+              style={{ color: "hsl(38,70%,60%)" }}
+            >
+              Ваш отзыв / Рекомендация
+            </label>
+            <textarea
+              value={form.text}
+              onChange={(e) => handleChange("text", e.target.value)}
+              placeholder="Почему вы рекомендуете эту книгу? Чем она вам запомнилась..."
+              rows={3}
+              className="w-full bg-transparent border-0 border-b pb-3 text-sm md:text-base
+                focus:outline-none transition-colors duration-300 resize-none"
+              style={{
+                borderColor: "rgba(255,255,255,0.1)",
+                color: "hsl(45,20%,88%)",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "hsl(38,90%,62%)")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
+              required
+            />
+          </div>
 
           <div className="pt-2">
             <AnimatePresence mode="wait">
@@ -118,7 +148,7 @@ export default function RecommendationForm({ onSubmitted }) {
                   }}
                 >
                   {submitting ? (
-                    <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <span>Добавить</span>
