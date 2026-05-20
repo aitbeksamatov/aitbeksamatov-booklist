@@ -14,7 +14,7 @@ import SectionDivider from "../components/booklist/SectionDivider";
 import RecommendationForm from "../components/booklist/RecommendationForm";
 import RecommendationCard from "../components/booklist/RecommendationCard";
 
-// Твои личные данные от Sheetson
+// Личные данные от Sheetson
 const API_KEY = '6_w0njCMS0pGhSY-nc2U7l9L-5_16qCmU_MDqSTi7Vid-HJ_aWzqBJqqq9Q';
 const SPREADSHEET_ID = '1M6thLwpRMwnZYAHwCGYoFmT72pyo3dlmU41SehVhK-M';
 const SHEET_NAME = 'Sheet1';
@@ -23,7 +23,7 @@ const PAGE_SIZE = 15;
 
 export default function Home() {
   const [books] = useState(localBooks);
-  // Изначально показываем локальные рекомендации, пока грузятся новые из таблицы
+  // Изначально показываем локальные рекомендации
   const [recommendations, setRecommendations] = useState(localRecommendations);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -38,21 +38,21 @@ export default function Home() {
       })
       .then((data) => {
         if (data && data.results && data.results.length > 0) {
-          // Приводим данные из таблицы к нужному формату (добавляем id)
+          // Приводим данные из таблицы к нужному формату
           const cloudRecs = data.results.map((item, index) => ({
-            id: item.id || `cloud-${index}`,
-            name: item.name,
-            book_title: item.book_title,
-            book_author: item.book_author,
-            text: item.text,
-            created_date: item.created_date
+            id: item.id || `cloud-${index}-${Date.now()}`,
+            name: item.name || "Аноним",
+            book_title: item.book_title || "Без названия",
+            book_author: item.book_author || "Автор не указан",
+            text: item.text || "",
+            created_date: item.created_date || new Date().toISOString()
           }));
           
-          // Объединяем: новые из таблицы (перевернутые, чтобы свежие сверху) + твои дефолтные локальные
+          // Объединяем: новые из таблицы (реверс, чтобы свежие сверху) + локальные
           setRecommendations([...cloudRecs.reverse(), ...localRecommendations]);
         }
       })
-      .catch((err) => console.error("Ошибка загрузки рекомендаций:", err));
+      .catch((err) => console.error("Ошибка загрузки рекомендаций из Sheetson:", err));
   }, []);
 
   // 📤 2. Функция отправки новой рекомендации в Google Таблицу
@@ -61,13 +61,14 @@ export default function Home() {
       name: newRecData.name || "Аноним",
       book_title: newRecData.book_title || "",
       book_author: newRecData.book_author || "",
-      text: newRecData.text || newRecData.recommendation || "",
+      text: newRecData.text || "",
       created_date: new Date().toISOString()
     };
 
     const postUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
 
-    fetch(postUrl, {
+    // СТРОГО ДОБАВЛЕН RETURN, чтобы связать асинхронность с формой!
+    return fetch(postUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,19 +76,22 @@ export default function Home() {
       body: JSON.stringify(newRecommendation),
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Не удалось сохранить строку");
+        if (!res.ok) throw new Error("Не удалось сохранить строку на сервере");
         return res.json();
       })
       .then((savedData) => {
-        // Добавляем сгенерированный id, чтобы React не ругался при рендере ключей
+        // Создаем финальный объект для мгновенного рендера на экране
         const finalRec = {
           ...newRecommendation,
           id: savedData.id || `rec-${Date.now()}`
         };
-        // Мгновенно отображаем карточку сверху на экране
+        // Мгновенно отображаем карточку на экране поверх остальных
         setRecommendations((prev) => [finalRec, ...prev]);
       })
-      .catch((err) => console.error("Ошибка записи в таблицу:", err));
+      .catch((err) => {
+        console.error("Ошибка записи в таблицу:", err);
+        throw err; // Пробрасываем ошибку, чтобы форма знала о сбое
+      });
   };
 
   return (
@@ -165,17 +169,17 @@ export default function Home() {
         </section>
 
         {/* Список рекомендаций от пользователей */}
-        {recommendations.length > 0 && (
+        {recommendations && recommendations.length > 0 && (
           <section className="pb-20">
             <div className="mb-6">
               <p className="text-[10px] text-muted-foreground/50 tracking-[0.3em] uppercase">
-                Рекомендации от читателей
+                Рекомендации от читателей ({recommendations.length})
               </p>
             </div>
             <div className="px-2">
               <AnimatePresence>
                 {recommendations.map((rec, i) => (
-                  <RecommendationCard key={rec.id} rec={rec} index={i} />
+                  <RecommendationCard key={rec.id || `rec-${i}`} rec={rec} index={i} />
                 ))}
               </AnimatePresence>
             </div>
