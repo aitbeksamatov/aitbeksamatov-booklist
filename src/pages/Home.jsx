@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
+import { createClient } from "@supabase/supabase-js";
 
 import { localBooks, localRecommendations } from "../mockData";
 
@@ -12,9 +13,11 @@ import SectionDivider from "../components/booklist/SectionDivider";
 import RecommendationForm from "../components/booklist/RecommendationForm";
 import RecommendationCard from "../components/booklist/RecommendationCard";
 
-const API_KEY = '6_w0njCMS0pGhSY-nc2U7l9L-5_16qCmU_MDqSTi7Vid-HJ_aWzqBJqqq9Q';
-const SPREADSHEET_ID = '1dIcCOuzz_HOKNNmngqsPgSobZugttsmrvIEyr43eHZ0';
-const SHEET_NAME = 'Sheet1';
+// 🔌 Инициализация Supabase клиента
+const SUPABASE_URL = "https://xmawsanlnnyjwybebucv.supabase.co"; 
+const SUPABASE_ANON_KEY = "sb_publishable_3u28zbwC778LNVF9RB3RLQ_ye6OBGHQ";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const PAGE_SIZE = 15;
 
@@ -23,64 +26,64 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState(localRecommendations);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // 📥 Скачиваем данные при открытии сайта
+  // 📥 Скачиваем данные из Supabase при открытии сайта
   useEffect(() => {
-    const fetchUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
-    
-    fetch(fetchUrl)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Ошибка сети: ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.results && data.results.length > 0) {
-          const cloudRecs = data.results.map((item, index) => ({
-            id: item.id || `cloud-${index}-${Date.now()}`,
+    const fetchRecommendations = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("recommendations")
+          .select("*")
+          .order("created_at", { ascending: false }); // Свежие всегда вверху
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const cloudRecs = data.map((item) => ({
+            id: item.id,
             name: item.name || "Аноним",
             book_title: item.book_title || "Без названия",
             book_author: item.book_author || "Автор не указан"
           }));
-          
-          // Показываем новые облачные сверху + старые локальные снизу
-          setRecommendations([...cloudRecs.reverse(), ...localRecommendations]);
+
+          // Показываем облачные из базы сверху + старые локальные моки снизу
+          setRecommendations([...cloudRecs, ...localRecommendations]);
         }
-      })
-      .catch((err) => console.error("Ошибка загрузки рекомендаций из Sheetson:", err));
+      } catch (err) {
+        console.error("Ошибка загрузки рекомендаций из Supabase:", err.message);
+      }
+    };
+
+    fetchRecommendations();
   }, []);
 
-  // 📤 Отправляем строго 3 твоих поля в Google Таблицу
-  const handleNewRec = (newRecData) => {
+  // 📤 Отправляем форму в Supabase
+  const handleNewRec = async (newRecData) => {
     const newRecommendation = {
       name: newRecData.name || "Аноним",
       book_title: newRecData.book_title || "",
       book_author: newRecData.book_author || ""
     };
 
-    const postUrl = `https://api.sheetson.com/v2/sheets/${SHEET_NAME}?apiKey=${API_KEY}&spreadsheetId=${SPREADSHEET_ID}`;
+    try {
+      const { data, error } = await supabase
+        .from("recommendations")
+        .insert([newRecommendation])
+        .select(); // Просим вернуть сохраненную строку, чтобы забрать её id
 
-    return fetch(postUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newRecommendation),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Не удалось сохранить строку на сервере");
-        return res.json();
-      })
-      .then((savedData) => {
-        const finalRec = {
-          ...newRecommendation,
-          id: savedData.id || `rec-${Date.now()}`
-        };
-        // Добавляем на экран
-        setRecommendations((prev) => [finalRec, ...prev]);
-      })
-      .catch((err) => {
-        console.error("Ошибка записи в таблицу:", err);
-        throw err;
-      });
+      if (error) throw error;
+
+      // Если строка успешно добавилась, обновляем интерфейс локально
+      const savedRow = data?.[0] || {};
+      const finalRec = {
+        ...newRecommendation,
+        id: savedRow.id || `rec-${Date.now()}`
+      };
+
+      setRecommendations((prev) => [finalRec, ...prev]);
+    } catch (err) {
+      console.error("Ошибка записи в Supabase:", err.message);
+      throw err; // Прокидываем ошибку дальше в форму, чтобы сработал UI-блок catch
+    }
   };
 
   return (
