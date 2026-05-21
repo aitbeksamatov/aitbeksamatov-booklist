@@ -61,7 +61,7 @@ export const localBooks = [
   { id: "58", title: "Думай медленно… решай быстро", author: "Daniel Kahneman" },
   { id: "59", title: "Почему одни страны богатые, а другие бедные", author: "Daron Acemoglu, James A. Robinson" },
   
-  { id: "61", title: "Коран", author: "—" },
+  
   
 ];
 
