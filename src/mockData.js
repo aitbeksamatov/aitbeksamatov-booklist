@@ -5,12 +5,12 @@ export const localBooks = [
   { id: "2", title: "Игры тестостерона и другие вопросы биологии поведения", author: "Роберт Сапольски" },
   { id: "3", title: "Идеальный руководитель: Почему им нельзя стать", author: "Ицхак Адизес" },
   { id: "4", title: "Seeing What Others Don’t", author: "Gary Klein" },
-  { id: "5", title: "Чёрный обелиск", author: "Эрих Мария Ремарк" },
-  { id: "6", title: "Всё решено: Жизнь без свободы воли", author: "Роберт Сапольски" },
+
+  
   { id: "7", title: "Against Empathy", author: "Paul Bloom" },
   { id: "8", title: "Бегущий за ветром", author: "Халед Хоссейни" },
   { id: "9", title: "Автостопом по галактике", author: "Douglas Adams" },
-  { id: "10", title: "Дипломатия", author: "Генри Киссинджер" },
+ 
   { id: "11", title: "Развитие лидеров", author: "Ицхак Адизес" },
   { id: "12", title: "The Beginning of Infinity", author: "David Deutsch" },
   { id: "13", title: "Атомные привычки", author: "Джеймс Клир" },
