@@ -44,6 +44,10 @@ export const localBooks = [
   { id: "41", title: "Практическая характерология", author: "Victor Ponomarenko" },
   { id: "42", title: "Homo Deus", author: "Yuval Noah Harari" },
   { id: "43", title: "От нуля до единицы", author: "Peter Thiel" },
+
+  
+
+   { id: "44", title: "Как привести дела в порядок. Искусство продуктивности без стресса", author: "Дэвид Аллен" },
  
   { id: "45", title: "На Западном фронте без перемен", author: "Эрих Мария Ремарк" },
   { id: "46", title: "Nudge (Revised Edition)", author: "Cass R. Sunstein, Richard H. Thaler" },
@@ -60,6 +64,10 @@ export const localBooks = [
 
   { id: "58", title: "Думай медленно… решай быстро", author: "Daniel Kahneman" },
   { id: "59", title: "Почему одни страны богатые, а другие бедные", author: "Daron Acemoglu, James A. Robinson" },
+
+  { id: "60", title: "Глубокая работа. Правила для сосредоточенного успеха в отвлекающем мире", author: "Кал Ньюпорт" },
+
+  { id: "61", title: "Одна вещь", author: "Гэри Келлер" },
   
   
   
