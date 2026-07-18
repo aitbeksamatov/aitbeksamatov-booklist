@@ -2,7 +2,7 @@
 
 export const localBooks = [
   { id: "1", title: "21 урок для XXI века", author: "Юваль Ной Харари" },
-  { id: "2", title: "Игры тестостерона и другие вопросы биологии поведения", author: "Роберт Сапольски" },
+  
   { id: "3", title: "Идеальный руководитель: Почему им нельзя стать", author: "Ицхак Адизес" },
   { id: "4", title: "Seeing What Others Don’t", author: "Gary Klein" },
 
