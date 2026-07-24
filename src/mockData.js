@@ -4,9 +4,6 @@ export const localBooks = [
   { id: "1", title: "21 урок для XXI века", author: "Юваль Ной Харари" },
   
   { id: "3", title: "Идеальный руководитель: Почему им нельзя стать", author: "Ицхак Адизес" },
-  { id: "4", title: "Seeing What Others Don’t", author: "Gary Klein" },
-
-  
   { id: "7", title: "Against Empathy", author: "Paul Bloom" },
   { id: "8", title: "Бегущий за ветром", author: "Халед Хоссейни" },
   { id: "9", title: "Автостопом по галактике", author: "Douglas Adams" },
