@@ -3,10 +3,14 @@
 export const localBooks = [
   { id: "1", title: "21 урок для XXI века", author: "Юваль Ной Харари" },
   
-  { id: "3", title: "Идеальный руководитель: Почему им нельзя стать", author: "Ицхак Адизес" },
+  { id: "3", title: "Высокоэффективный Менеджер", author: "Эндрью Гроув" },
+
+  { id: "4", title: "Идеальный руководитель: Почему им нельзя стать", author: "Ицхак Адизес" },
 
   { id: "8", title: "Бегущий за ветром", author: "Халед Хоссейни" },
   { id: "9", title: "Автостопом по галактике", author: "Douglas Adams" },
+
+  { id: "10", title: "Принципы. Жизнь и работа", author: "Рэй Далио" },
  
   { id: "11", title: "Развитие лидеров", author: "Ицхак Адизес" },
   { id: "12", title: "The Beginning of Infinity", author: "David Deutsch" },
